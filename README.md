@@ -2,6 +2,8 @@
 
 A web-based editor for creating and editing character cards used in AI roleplay applications. Supports the Tavern Card specification versions V1, V2, and V3.
 
+**Try it online:** [ccedit.fur.is](https://ccedit.fur.is)
+
 ## Features
 
 - **Multi-version support** - Edit cards in V1, V2, or V3 format with easy version switching
