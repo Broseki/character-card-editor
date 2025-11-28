@@ -17,6 +17,7 @@ import { SystemSection } from './SystemSection';
 import { MetadataSection } from './MetadataSection';
 import { CharacterBookEditor } from './CharacterBookEditor';
 import { AssetsEditor } from './AssetsEditor';
+import { SavedCardsMenu, type SavedCard } from './SavedCardsMenu';
 
 const STORAGE_KEY = 'character-card-editor-state';
 
@@ -209,6 +210,24 @@ export function CardEditor() {
     }
   };
 
+  const handleLoadSavedCard = async (card: SavedCard) => {
+    setCardData(card.cardData);
+    setVersion(card.version);
+    setImageData(card.imageData);
+
+    if (card.imageData) {
+      const blob = await dataUrlToBlob(card.imageData);
+      setImageBlob(blob);
+    } else {
+      setImageBlob(null);
+    }
+  };
+
+  const showStatus = (message: string) => {
+    setStatus(message);
+    setTimeout(() => setStatus(''), 3000);
+  };
+
   return (
     <div className="min-h-screen bg-gray-900">
       {/* Header */}
@@ -253,6 +272,13 @@ export function CardEditor() {
             >
               Import
             </button>
+            <SavedCardsMenu
+              currentCardData={cardData}
+              currentVersion={version}
+              currentImageData={imageData}
+              onLoad={handleLoadSavedCard}
+              onStatusChange={showStatus}
+            />
             <button
               onClick={handleExportJson}
               className="px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white rounded-lg transition-colors"
