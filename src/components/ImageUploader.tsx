@@ -52,9 +52,9 @@ export function ImageUploader({ imageData, onImageChange }: ImageUploaderProps) 
   };
 
   return (
-    <div className="flex flex-col items-center gap-4">
+    <div className="flex flex-col items-center gap-3 md:gap-4">
       <div
-        className={`relative w-48 h-72 rounded-lg overflow-hidden border-2 transition-colors cursor-pointer ${
+        className={`relative w-40 h-60 md:w-48 md:h-72 rounded-lg overflow-hidden border-2 transition-colors cursor-pointer ${
           isDragging
             ? 'border-blue-500 bg-blue-500/10'
             : 'border-gray-700 hover:border-gray-600'

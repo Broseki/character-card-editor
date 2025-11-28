@@ -243,15 +243,39 @@ export function CardEditor() {
       )}
 
       {/* Header */}
-      <header className="sticky top-0 z-10 bg-gray-800 border-b border-gray-700 px-6 py-4">
-        <div className="max-w-6xl mx-auto flex items-center justify-between gap-4">
-          <h1 className="text-xl font-bold text-gray-100 flex items-center gap-2">
-            <img src="/wizard.svg" alt="" className="w-8 h-8" />
-            Character Card Editor
-          </h1>
+      <header className="bg-gray-800 border-b border-gray-700 px-4 md:px-6 py-4">
+        <div className="max-w-6xl mx-auto flex flex-col gap-4">
+          {/* Title row */}
+          <div className="flex items-center justify-between">
+            <h1 className="text-xl font-bold text-gray-100 flex items-center gap-2">
+              <img src="/wizard.svg" alt="" className="w-8 h-8" />
+              Character Card Editor
+            </h1>
 
-          {/* Version Selector */}
-          <div className="flex items-center gap-2">
+            {/* Version Selector - desktop only */}
+            <div className="hidden md:flex items-center gap-2">
+              <label className="text-sm text-gray-400">Format:</label>
+              <div className="flex rounded-lg overflow-hidden border border-gray-600">
+                {VERSION_OPTIONS.map((opt) => (
+                  <button
+                    key={opt.value}
+                    onClick={() => setVersion(opt.value)}
+                    title={opt.description}
+                    className={`px-3 py-1.5 text-sm font-medium transition-colors ${
+                      version === opt.value
+                        ? 'bg-blue-600 text-white'
+                        : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
+                    }`}
+                  >
+                    {opt.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+          </div>
+
+          {/* Version Selector - mobile */}
+          <div className="flex md:hidden items-center gap-2">
             <label className="text-sm text-gray-400">Format:</label>
             <div className="flex rounded-lg overflow-hidden border border-gray-600">
               {VERSION_OPTIONS.map((opt) => (
@@ -271,18 +295,19 @@ export function CardEditor() {
             </div>
           </div>
 
-          <div className="flex items-center gap-3">
+          {/* Buttons - stack on mobile, row on desktop */}
+          <div className="flex flex-col sm:flex-row sm:flex-wrap gap-2 sm:gap-3">
             <button
               onClick={handleNewCard}
               className="px-4 py-2 bg-gray-700 hover:bg-gray-600 text-gray-200 rounded-lg transition-colors"
             >
-              New
+              New Card
             </button>
             <button
               onClick={() => fileInputRef.current?.click()}
               className="px-4 py-2 bg-gray-700 hover:bg-gray-600 text-gray-200 rounded-lg transition-colors"
             >
-              Import
+              Import Card
             </button>
             <SavedCardsMenu
               currentCardData={cardData}
@@ -319,12 +344,12 @@ export function CardEditor() {
       </header>
 
       {/* Version Info Banner */}
-      <div className="max-w-6xl mx-auto px-6 pt-4">
-        <div className="bg-gray-800 border border-gray-700 rounded-lg px-4 py-2 text-sm flex items-center justify-between">
+      <div className="max-w-6xl mx-auto px-4 md:px-6 pt-4">
+        <div className="bg-gray-800 border border-gray-700 rounded-lg px-3 md:px-4 py-2 text-xs md:text-sm flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1 sm:gap-0">
           <div>
             <span className="text-gray-400">Editing as </span>
             <span className="text-blue-400 font-medium">{version.toUpperCase()}</span>
-            <span className="text-gray-500 ml-2">
+            <span className="text-gray-500 ml-2 hidden md:inline">
               {version === 'v1' && '— Basic fields: name, description, personality, scenario, messages'}
               {version === 'v2' && '— Extended fields + system prompts, metadata, tags, lorebook'}
               {version === 'v3' && '— Full features: assets, group greetings, timestamps, regex entries'}
@@ -339,12 +364,12 @@ export function CardEditor() {
       </div>
 
       {/* Main Content */}
-      <main className="max-w-6xl mx-auto px-6 py-6">
-        <div className="flex gap-8">
+      <main className="max-w-6xl mx-auto px-4 md:px-6 py-4 md:py-6">
+        <div className="flex flex-col lg:flex-row gap-6 lg:gap-8">
           {/* Left Column - Image */}
-          <div className="flex-shrink-0">
+          <div className="flex-shrink-0 flex justify-center lg:justify-start">
             {isLoading ? (
-              <div className="w-48 h-72 rounded-lg border-2 border-gray-700 bg-gray-800 flex items-center justify-center">
+              <div className="w-40 h-60 md:w-48 md:h-72 rounded-lg border-2 border-gray-700 bg-gray-800 flex items-center justify-center">
                 <span className="text-gray-500">Loading...</span>
               </div>
             ) : (
@@ -356,7 +381,7 @@ export function CardEditor() {
           </div>
 
           {/* Right Column - Form */}
-          <div className="flex-1 space-y-6">
+          <div className="flex-1 space-y-6 min-w-0">
             <BasicInfoSection
               data={cardData}
               version={version}
@@ -397,7 +422,7 @@ export function CardEditor() {
       </main>
 
       {/* Footer */}
-      <footer className="border-t border-gray-700 bg-gray-800 px-6 py-4 mt-8">
+      <footer className="border-t border-gray-700 bg-gray-800 px-4 md:px-6 py-3 md:py-4 mt-8">
         <div className="max-w-6xl mx-auto flex items-center justify-center gap-2 text-sm text-gray-400">
           <span>Open source on</span>
           <a

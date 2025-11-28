@@ -120,16 +120,16 @@ export function SavedCardsMenu({
     <div className="relative" ref={menuRef}>
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="px-4 py-2 bg-purple-600 hover:bg-purple-500 text-white rounded-lg transition-colors flex items-center gap-2"
+        className="w-full sm:w-auto px-4 py-2 bg-purple-600 hover:bg-purple-500 text-white rounded-lg transition-colors flex items-center justify-center sm:justify-start gap-2"
       >
-        <span>Cards</span>
+        <span>Saved Cards</span>
         <span className="text-xs bg-purple-700 px-1.5 py-0.5 rounded">
           {savedCards.length}
         </span>
       </button>
 
       {isOpen && (
-        <div className="absolute right-0 top-full mt-2 w-80 bg-gray-800 border border-gray-700 rounded-lg shadow-xl z-50">
+        <div className="absolute right-0 top-full mt-2 w-[calc(100vw-2rem)] sm:w-80 max-w-80 bg-gray-800 border border-gray-700 rounded-lg shadow-xl z-50">
           {/* Save Section */}
           <div className="p-3 border-b border-gray-700">
             {saveDialogOpen ? (

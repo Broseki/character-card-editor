@@ -20,7 +20,7 @@ export function MetadataSection({ data, version, onChange }: MetadataSectionProp
         <span className="text-xs text-gray-500 ml-2">(V2+)</span>
       </h2>
 
-      <div className="grid grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div>
           <label className="block text-sm font-medium text-gray-300 mb-1">
             Creator
@@ -88,7 +88,7 @@ export function MetadataSection({ data, version, onChange }: MetadataSectionProp
 
       {/* V3: Timestamps */}
       {version === 'v3' && (
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div>
             <label className="block text-sm font-medium text-gray-300 mb-1">
               Creation Date

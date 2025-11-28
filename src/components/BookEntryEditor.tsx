@@ -53,7 +53,7 @@ export function BookEntryEditor({ entry, version, onChange, onDelete }: BookEntr
 
       {expanded && (
         <div className="p-4 space-y-4 bg-gray-850">
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
               <label className="block text-sm font-medium text-gray-300 mb-1">
                 Entry Name
@@ -100,7 +100,7 @@ export function BookEntryEditor({ entry, version, onChange, onDelete }: BookEntr
             />
           </div>
 
-          <div className="grid grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
             <div>
               <label className="block text-sm font-medium text-gray-300 mb-1">
                 Priority
