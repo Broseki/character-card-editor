@@ -79,11 +79,18 @@ export function ImageUploader({ imageData, onImageChange }: ImageUploaderProps) 
         onDragLeave={handleDragLeave}
       >
         {imageData ? (
-          <img
-            src={imageData}
-            alt="Character card"
-            className="w-full h-full object-cover"
-          />
+          // Only render image if data is a valid PNG data URL (the only format this app produces)
+          imageData.startsWith('data:image/png;base64,') ? (
+            <img
+              src={imageData}
+              alt="Character card"
+              className="w-full h-full object-cover"
+            />
+          ) : (
+            <div className="w-full h-full flex items-center justify-center bg-gray-800 text-red-500">
+              Invalid image data
+            </div>
+          )
         ) : (
           <div className="w-full h-full flex items-center justify-center bg-gray-800 text-gray-500">
             Loading...
