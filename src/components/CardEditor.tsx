@@ -18,7 +18,8 @@ import { SystemSection } from './SystemSection';
 import { MetadataSection } from './MetadataSection';
 import { CharacterBookEditor } from './CharacterBookEditor';
 import { AssetsEditor } from './AssetsEditor';
-import { SavedCardsMenu, type SavedCard } from './SavedCardsMenu';
+import { SavedCardsMenu } from './SavedCardsMenu';
+import type { SavedCard } from '../utils/savedCardsStorage';
 
 const STORAGE_KEY = 'character-card-editor-state';
 
