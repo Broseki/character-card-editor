@@ -1,6 +1,6 @@
 import { useRef, useEffect, useState } from 'react';
 
-import { createPlaceholderImage } from '../utils/pngUtils';
+import { createPlaceholderImage, convertImageToPng } from '../utils/pngUtils';
 
 interface ImageUploaderProps {
   imageData: string | null;
@@ -10,6 +10,7 @@ interface ImageUploaderProps {
 export function ImageUploader({ imageData, onImageChange }: ImageUploaderProps) {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [isDragging, setIsDragging] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     if (!imageData) {
@@ -23,13 +24,26 @@ export function ImageUploader({ imageData, onImageChange }: ImageUploaderProps) 
     }
   }, [imageData, onImageChange]);
 
-  const handleFileSelect = (file: File) => {
-    if (file.type.startsWith('image/')) {
+  const handleFileSelect = async (file: File) => {
+    setError(null);
+
+    if (!file.type.startsWith('image/')) {
+      setError('Please select an image file');
+      return;
+    }
+
+    try {
+      // Convert to PNG (returns as-is if already PNG)
+      const pngBlob = await convertImageToPng(file);
+
       const reader = new FileReader();
       reader.onload = () => {
-        onImageChange(reader.result as string, file);
+        onImageChange(reader.result as string, pngBlob);
       };
-      reader.readAsDataURL(file);
+      reader.readAsDataURL(pngBlob);
+    } catch (err) {
+      console.error('Image conversion error:', err);
+      setError(err instanceof Error ? err.message : 'Failed to process image');
     }
   };
 
@@ -92,6 +106,11 @@ export function ImageUploader({ imageData, onImageChange }: ImageUploaderProps) 
       <p className="text-xs text-gray-500 text-center">
         Recommended: 400×600px
       </p>
+      {error && (
+        <p className="text-xs text-red-400 text-center max-w-48">
+          {error}
+        </p>
+      )}
     </div>
   );
 }

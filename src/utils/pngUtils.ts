@@ -205,5 +205,55 @@ export async function createPlaceholderImage(): Promise<Blob> {
   });
 }
 
+/**
+ * Converts any image file to PNG format using canvas.
+ * Throws an error if the file cannot be loaded as an image.
+ */
+export async function convertImageToPng(file: File | Blob): Promise<Blob> {
+  // If already a PNG, return as-is
+  if (file.type === 'image/png') {
+    return file;
+  }
+
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    const url = URL.createObjectURL(file);
+
+    img.onload = () => {
+      URL.revokeObjectURL(url);
+
+      const canvas = document.createElement('canvas');
+      canvas.width = img.naturalWidth;
+      canvas.height = img.naturalHeight;
+
+      const ctx = canvas.getContext('2d');
+      if (!ctx) {
+        reject(new Error('Failed to get canvas context'));
+        return;
+      }
+
+      ctx.drawImage(img, 0, 0);
+
+      canvas.toBlob(
+        (blob) => {
+          if (blob) {
+            resolve(blob);
+          } else {
+            reject(new Error('Failed to convert image to PNG'));
+          }
+        },
+        'image/png'
+      );
+    };
+
+    img.onerror = () => {
+      URL.revokeObjectURL(url);
+      reject(new Error('Failed to load image. The file may be corrupted or not a valid image.'));
+    };
+
+    img.src = url;
+  });
+}
+
 // Re-export for convenience
 export { cardToEditorData, detectCardVersion };

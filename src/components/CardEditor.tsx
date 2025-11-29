@@ -9,6 +9,7 @@ import {
   downloadJson,
   cardToEditorData,
   detectCardVersion,
+  convertImageToPng,
 } from '../utils/pngUtils';
 import { ImageUploader } from './ImageUploader';
 import { BasicInfoSection } from './BasicInfoSection';
@@ -142,25 +143,38 @@ export function CardEditor() {
         setCardData(editorData);
         setVersion(detectedVersion);
         setStatus(`JSON imported (${detectedVersion.toUpperCase()})`);
-      } else if (file.type.startsWith('image/png')) {
-        const extracted = await extractCardFromPng(file);
+      } else if (file.type.startsWith('image/')) {
+        // Convert any image format to PNG
+        let pngBlob: Blob;
+        try {
+          pngBlob = await convertImageToPng(file);
+        } catch (err) {
+          console.error('Image conversion error:', err);
+          setStatus(err instanceof Error ? err.message : 'Failed to convert image to PNG');
+          setTimeout(() => setStatus(''), 3000);
+          return;
+        }
+
+        // Try to extract card data from PNG (only works if original was PNG with embedded data)
+        const extracted = file.type === 'image/png' ? await extractCardFromPng(file) : null;
         if (extracted) {
           const editorData = cardToEditorData(extracted.card);
           setCardData(editorData);
           setVersion(extracted.detectedVersion);
-
-          const reader = new FileReader();
-          reader.onload = () => {
-            setImageData(reader.result as string);
-            setImageBlob(file);
-          };
-          reader.readAsDataURL(file);
           setStatus(`PNG imported (${extracted.detectedVersion.toUpperCase()})`);
         } else {
-          setStatus('No character data found in PNG');
+          setStatus('Image imported (no character data found)');
         }
+
+        // Set the converted PNG as the image
+        const reader = new FileReader();
+        reader.onload = () => {
+          setImageData(reader.result as string);
+          setImageBlob(pngBlob);
+        };
+        reader.readAsDataURL(pngBlob);
       } else {
-        setStatus('Unsupported file format. Use .json or .png');
+        setStatus('Unsupported file format. Use .json or an image file');
       }
     } catch (error) {
       console.error('Import error:', error);
@@ -333,7 +347,7 @@ export function CardEditor() {
         <input
           ref={fileInputRef}
           type="file"
-          accept=".json,.png,image/png"
+          accept=".json,image/*"
           onChange={(e) => {
             const file = e.target.files?.[0];
             if (file) handleImport(file);
