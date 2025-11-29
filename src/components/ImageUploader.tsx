@@ -78,13 +78,9 @@ export function ImageUploader({ imageData, onImageChange }: ImageUploaderProps) 
         onDragOver={handleDragOver}
         onDragLeave={handleDragLeave}
       >
-        {imageData && (
-          // Only render image if data is a valid image data URL or HTTP(S) URL
-          (typeof imageData === 'string' && (
-            imageData.startsWith('data:image/') ||
-            imageData.startsWith('https://') ||
-            imageData.startsWith('http://')
-          )) ? (
+        {imageData ? (
+          // Only render image if data is a valid PNG data URL (the only format this app produces)
+          imageData.startsWith('data:image/png;base64,') ? (
             <img
               src={imageData}
               alt="Character card"
@@ -95,8 +91,7 @@ export function ImageUploader({ imageData, onImageChange }: ImageUploaderProps) 
               Invalid image data
             </div>
           )
-        )}
-        {!imageData && (
+        ) : (
           <div className="w-full h-full flex items-center justify-center bg-gray-800 text-gray-500">
             Loading...
           </div>

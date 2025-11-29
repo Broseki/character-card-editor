@@ -286,7 +286,7 @@ export function SavedCardsMenu({
                         }`}
                       >
                         <div className="w-6 h-8 bg-gray-600 rounded overflow-hidden flex-shrink-0">
-                          {card.imageData ? (
+                          {card.imageData?.startsWith('data:image/png;base64,') ? (
                             <img
                               src={card.imageData}
                               alt=""
@@ -354,7 +354,7 @@ export function SavedCardsMenu({
                       <div className={`w-10 h-14 bg-gray-700 rounded overflow-hidden flex-shrink-0 ${
                         loadedCardId === card.id ? 'ring-2 ring-purple-500' : ''
                       }`}>
-                        {card.imageData ? (
+                        {card.imageData?.startsWith('data:image/png;base64,') ? (
                           <img
                             src={card.imageData}
                             alt=""
