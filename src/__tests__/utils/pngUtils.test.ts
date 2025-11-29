@@ -1023,15 +1023,16 @@ describe('convertImageToPng', () => {
 
     it('should convert non-PNG images', async () => {
       // Mock Image constructor using class syntax for Vitest v4
-      let mockImageInstance: { onload: (() => void) | null; onerror: (() => void) | null; src: string; naturalWidth: number; naturalHeight: number };
+      const mockImageInstance: { onload: (() => void) | null; onerror: (() => void) | null; src: string; naturalWidth: number; naturalHeight: number } = {
+        onload: null,
+        onerror: null,
+        src: '',
+        naturalWidth: 100,
+        naturalHeight: 100,
+      };
       class MockImage {
-        onload: (() => void) | null = null;
-        onerror: (() => void) | null = null;
-        src = '';
-        naturalWidth = 100;
-        naturalHeight = 100;
         constructor() {
-          mockImageInstance = this;
+          return mockImageInstance;
         }
       }
 
@@ -1057,13 +1058,14 @@ describe('convertImageToPng', () => {
   describe('Sad Path', () => {
     it('should reject when image fails to load', async () => {
       // Mock Image constructor using class syntax for Vitest v4
-      let mockImageInstance: { onload: (() => void) | null; onerror: (() => void) | null; src: string };
+      const mockImageInstance: { onload: (() => void) | null; onerror: (() => void) | null; src: string } = {
+        onload: null,
+        onerror: null,
+        src: '',
+      };
       class MockImage {
-        onload: (() => void) | null = null;
-        onerror: (() => void) | null = null;
-        src = '';
         constructor() {
-          mockImageInstance = this;
+          return mockImageInstance;
         }
       }
 
@@ -1083,15 +1085,16 @@ describe('convertImageToPng', () => {
 
     it('should reject when canvas context is null', async () => {
       // Mock Image constructor using class syntax for Vitest v4
-      let mockImageInstance: { onload: (() => void) | null; onerror: (() => void) | null; src: string; naturalWidth: number; naturalHeight: number };
+      const mockImageInstance: { onload: (() => void) | null; onerror: (() => void) | null; src: string; naturalWidth: number; naturalHeight: number } = {
+        onload: null,
+        onerror: null,
+        src: '',
+        naturalWidth: 100,
+        naturalHeight: 100,
+      };
       class MockImage {
-        onload: (() => void) | null = null;
-        onerror: (() => void) | null = null;
-        src = '';
-        naturalWidth = 100;
-        naturalHeight = 100;
         constructor() {
-          mockImageInstance = this;
+          return mockImageInstance;
         }
       }
 
@@ -1116,15 +1119,16 @@ describe('convertImageToPng', () => {
 
     it('should reject when toBlob returns null', async () => {
       // Mock Image constructor using class syntax for Vitest v4
-      let mockImageInstance: { onload: (() => void) | null; onerror: (() => void) | null; src: string; naturalWidth: number; naturalHeight: number };
+      const mockImageInstance: { onload: (() => void) | null; onerror: (() => void) | null; src: string; naturalWidth: number; naturalHeight: number } = {
+        onload: null,
+        onerror: null,
+        src: '',
+        naturalWidth: 100,
+        naturalHeight: 100,
+      };
       class MockImage {
-        onload: (() => void) | null = null;
-        onerror: (() => void) | null = null;
-        src = '';
-        naturalWidth = 100;
-        naturalHeight = 100;
         constructor() {
-          mockImageInstance = this;
+          return mockImageInstance;
         }
       }
 
@@ -1150,13 +1154,14 @@ describe('convertImageToPng', () => {
   describe('Malicious Path', () => {
     it('should handle file with spoofed MIME type', async () => {
       // Mock Image constructor using class syntax for Vitest v4
-      let mockImageInstance: { onload: (() => void) | null; onerror: (() => void) | null; src: string };
+      const mockImageInstance: { onload: (() => void) | null; onerror: (() => void) | null; src: string } = {
+        onload: null,
+        onerror: null,
+        src: '',
+      };
       class MockImage {
-        onload: (() => void) | null = null;
-        onerror: (() => void) | null = null;
-        src = '';
         constructor() {
-          mockImageInstance = this;
+          return mockImageInstance;
         }
       }
 
