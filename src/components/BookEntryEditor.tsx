@@ -2,6 +2,7 @@ import { useState } from 'react';
 
 import type { CharacterBookEntry, SpecVersion } from '../utils/types';
 import { TagInput } from './TagInput';
+import { TextArea } from './TextArea';
 
 interface BookEntryEditorProps {
   entry: CharacterBookEntry;
@@ -91,12 +92,11 @@ export function BookEntryEditor({ entry, version, onChange, onDelete }: BookEntr
             <label className="block text-sm font-medium text-gray-300 mb-1">
               Content
             </label>
-            <textarea
+            <TextArea
               value={entry.content}
-              onChange={(e) => update({ content: e.target.value })}
+              onChange={(value) => update({ content: value })}
               placeholder="Content to insert when triggered..."
               rows={4}
-              className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-gray-200 placeholder-gray-500 focus:outline-none focus:border-blue-500 resize-y"
             />
           </div>
 

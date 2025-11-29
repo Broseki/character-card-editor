@@ -1,4 +1,5 @@
 import type { EditorCardData, SpecVersion } from '../utils/types';
+import { TextArea } from './TextArea';
 
 interface BasicInfoSectionProps {
   data: EditorCardData;
@@ -48,12 +49,11 @@ export function BasicInfoSection({ data, version, onChange }: BasicInfoSectionPr
         <label className="block text-sm font-medium text-gray-300 mb-1">
           Description <span className="text-red-400">*</span>
         </label>
-        <textarea
+        <TextArea
           value={data.description}
-          onChange={(e) => onChange({ description: e.target.value })}
+          onChange={(value) => onChange({ description: value })}
           placeholder="Character description, background, and traits..."
           rows={6}
-          className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-gray-200 placeholder-gray-500 focus:outline-none focus:border-blue-500 resize-y"
         />
       </div>
 
@@ -61,12 +61,11 @@ export function BasicInfoSection({ data, version, onChange }: BasicInfoSectionPr
         <label className="block text-sm font-medium text-gray-300 mb-1">
           Personality
         </label>
-        <textarea
+        <TextArea
           value={data.personality}
-          onChange={(e) => onChange({ personality: e.target.value })}
+          onChange={(value) => onChange({ personality: value })}
           placeholder="Character personality traits..."
           rows={3}
-          className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-gray-200 placeholder-gray-500 focus:outline-none focus:border-blue-500 resize-y"
         />
       </div>
 
@@ -74,12 +73,11 @@ export function BasicInfoSection({ data, version, onChange }: BasicInfoSectionPr
         <label className="block text-sm font-medium text-gray-300 mb-1">
           Scenario
         </label>
-        <textarea
+        <TextArea
           value={data.scenario}
-          onChange={(e) => onChange({ scenario: e.target.value })}
+          onChange={(value) => onChange({ scenario: value })}
           placeholder="The setting or scenario for the conversation..."
           rows={3}
-          className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-gray-200 placeholder-gray-500 focus:outline-none focus:border-blue-500 resize-y"
         />
       </div>
     </div>

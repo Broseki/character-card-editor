@@ -1,4 +1,5 @@
 import type { EditorCardData, SpecVersion } from '../utils/types';
+import { TextArea } from './TextArea';
 
 interface MessagesSectionProps {
   data: EditorCardData;
@@ -53,12 +54,11 @@ export function MessagesSection({ data, version, onChange }: MessagesSectionProp
         <label className="block text-sm font-medium text-gray-300 mb-1">
           First Message <span className="text-red-400">*</span>
         </label>
-        <textarea
+        <TextArea
           value={data.first_mes}
-          onChange={(e) => onChange({ first_mes: e.target.value })}
+          onChange={(value) => onChange({ first_mes: value })}
           placeholder="The character's opening message..."
           rows={5}
-          className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-gray-200 placeholder-gray-500 focus:outline-none focus:border-blue-500 resize-y"
         />
       </div>
 
@@ -66,12 +66,12 @@ export function MessagesSection({ data, version, onChange }: MessagesSectionProp
         <label className="block text-sm font-medium text-gray-300 mb-1">
           Example Messages
         </label>
-        <textarea
+        <TextArea
           value={data.mes_example}
-          onChange={(e) => onChange({ mes_example: e.target.value })}
+          onChange={(value) => onChange({ mes_example: value })}
           placeholder="Example conversation format:&#10;<START>&#10;{{user}}: Hello!&#10;{{char}}: Hi there!"
           rows={6}
-          className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-gray-200 placeholder-gray-500 focus:outline-none focus:border-blue-500 resize-y font-mono text-sm"
+          monospace
         />
       </div>
 
@@ -100,12 +100,12 @@ export function MessagesSection({ data, version, onChange }: MessagesSectionProp
             <div className="space-y-3">
               {data.alternate_greetings.map((greeting, index) => (
                 <div key={index} className="relative">
-                  <textarea
+                  <TextArea
                     value={greeting}
-                    onChange={(e) => updateAlternateGreeting(index, e.target.value)}
+                    onChange={(value) => updateAlternateGreeting(index, value)}
                     placeholder={`Alternate greeting ${index + 1}...`}
                     rows={3}
-                    className="w-full px-3 py-2 pr-10 bg-gray-800 border border-gray-700 rounded-lg text-gray-200 placeholder-gray-500 focus:outline-none focus:border-blue-500 resize-y"
+                    className="pr-10"
                   />
                   <button
                     type="button"
@@ -146,12 +146,12 @@ export function MessagesSection({ data, version, onChange }: MessagesSectionProp
             <div className="space-y-3">
               {data.group_only_greetings.map((greeting, index) => (
                 <div key={index} className="relative">
-                  <textarea
+                  <TextArea
                     value={greeting}
-                    onChange={(e) => updateGroupGreeting(index, e.target.value)}
+                    onChange={(value) => updateGroupGreeting(index, value)}
                     placeholder={`Group greeting ${index + 1}...`}
                     rows={3}
-                    className="w-full px-3 py-2 pr-10 bg-gray-800 border border-gray-700 rounded-lg text-gray-200 placeholder-gray-500 focus:outline-none focus:border-blue-500 resize-y"
+                    className="pr-10"
                   />
                   <button
                     type="button"

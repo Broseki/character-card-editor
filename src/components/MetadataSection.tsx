@@ -1,5 +1,6 @@
 import type { EditorCardData, SpecVersion } from '../utils/types';
 import { TagInput } from './TagInput';
+import { TextArea } from './TextArea';
 
 interface MetadataSectionProps {
   data: EditorCardData;
@@ -77,12 +78,11 @@ export function MetadataSection({ data, version, onChange }: MetadataSectionProp
         <p className="text-xs text-gray-500 mb-2">
           Notes for users. Not included in prompts.
         </p>
-        <textarea
+        <TextArea
           value={data.creator_notes}
-          onChange={(e) => onChange({ creator_notes: e.target.value })}
+          onChange={(value) => onChange({ creator_notes: value })}
           placeholder="Usage notes, recommendations, changelog..."
           rows={4}
-          className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-gray-200 placeholder-gray-500 focus:outline-none focus:border-blue-500 resize-y"
         />
       </div>
 

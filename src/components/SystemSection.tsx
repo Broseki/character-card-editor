@@ -1,4 +1,5 @@
 import type { EditorCardData, SpecVersion } from '../utils/types';
+import { TextArea } from './TextArea';
 
 interface SystemSectionProps {
   data: EditorCardData;
@@ -26,12 +27,12 @@ export function SystemSection({ data, version, onChange }: SystemSectionProps) {
         <p className="text-xs text-gray-500 mb-2">
           Replaces the global system prompt. Use {'{{original}}'} to include the default prompt.
         </p>
-        <textarea
+        <TextArea
           value={data.system_prompt}
-          onChange={(e) => onChange({ system_prompt: e.target.value })}
+          onChange={(value) => onChange({ system_prompt: value })}
           placeholder="Custom system prompt for this character..."
           rows={5}
-          className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-gray-200 placeholder-gray-500 focus:outline-none focus:border-blue-500 resize-y font-mono text-sm"
+          monospace
         />
       </div>
 
@@ -42,12 +43,12 @@ export function SystemSection({ data, version, onChange }: SystemSectionProps) {
         <p className="text-xs text-gray-500 mb-2">
           Also known as "jailbreak" or "UJB". Inserted after the chat history. Use {'{{original}}'} for default.
         </p>
-        <textarea
+        <TextArea
           value={data.post_history_instructions}
-          onChange={(e) => onChange({ post_history_instructions: e.target.value })}
+          onChange={(value) => onChange({ post_history_instructions: value })}
           placeholder="Instructions to insert after chat history..."
           rows={4}
-          className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-gray-200 placeholder-gray-500 focus:outline-none focus:border-blue-500 resize-y font-mono text-sm"
+          monospace
         />
       </div>
     </div>
