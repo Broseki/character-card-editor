@@ -129,9 +129,9 @@ export function SavedCardsMenu({
       </button>
 
       {isOpen && (
-        <div className="absolute right-0 top-full mt-2 w-[calc(100vw-2rem)] sm:w-80 max-w-80 bg-gray-800 border border-gray-700 rounded-lg shadow-xl z-50">
+        <div className="absolute right-0 sm:right-0 left-0 sm:left-auto top-full mt-2 sm:w-80 bg-gray-800 border border-gray-700 rounded-lg shadow-xl z-50 max-h-[70vh] flex flex-col">
           {/* Save Section */}
-          <div className="p-3 border-b border-gray-700">
+          <div className="p-3 border-b border-gray-700 flex-shrink-0">
             {saveDialogOpen ? (
               <div className="space-y-2">
                 <input
@@ -172,7 +172,7 @@ export function SavedCardsMenu({
           </div>
 
           {/* Saved Cards List */}
-          <div className="max-h-64 overflow-y-auto">
+          <div className="flex-1 overflow-y-auto overscroll-contain">
             {savedCards.length === 0 ? (
               <div className="p-4 text-center text-gray-500 text-sm">
                 No saved cards yet
@@ -185,7 +185,7 @@ export function SavedCardsMenu({
                     <div
                       key={card.id}
                       onClick={() => handleLoad(card)}
-                      className="flex items-center gap-3 px-3 py-2 hover:bg-gray-700 cursor-pointer group"
+                      className="flex items-center gap-3 px-3 py-2.5 hover:bg-gray-700 active:bg-gray-600 cursor-pointer group border-b border-gray-700/50 last:border-b-0"
                     >
                       {/* Thumbnail */}
                       <div className="w-10 h-14 bg-gray-700 rounded overflow-hidden flex-shrink-0">
@@ -214,13 +214,15 @@ export function SavedCardsMenu({
                         </div>
                       </div>
 
-                      {/* Delete Button */}
+                      {/* Delete Button - always visible on mobile, hover on desktop */}
                       <button
                         onClick={(e) => handleDelete(card.id, e)}
-                        className="opacity-0 group-hover:opacity-100 p-1 text-gray-400 hover:text-red-400 transition-all"
+                        className="sm:opacity-0 sm:group-hover:opacity-100 p-2 text-gray-400 hover:text-red-400 active:text-red-500 transition-all flex-shrink-0"
                         title="Delete"
                       >
-                        ×
+                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                        </svg>
                       </button>
                     </div>
                   ))}
