@@ -210,9 +210,9 @@ export function SavedCardsMenu({
                 <button
                   onClick={handleSave}
                   disabled={!loadedCardId}
-                  className={`flex-1 px-3 py-2 text-white text-sm rounded transition-colors ${
+                  className={`flex-1 px-3 py-2 text-sm rounded transition-colors ${
                     loadedCardId
-                      ? 'bg-purple-600 hover:bg-purple-500'
+                      ? 'bg-gray-700 hover:bg-gray-600 text-gray-200'
                       : 'bg-gray-600 text-gray-400 cursor-not-allowed'
                   }`}
                   title={loadedCardId ? 'Save to current card' : 'No card loaded'}
