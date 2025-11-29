@@ -1,37 +1,8 @@
 import { useState, useRef, useEffect } from 'react';
 
 import type { EditorCardData, SpecVersion } from '../utils/types';
-
-const SAVED_CARDS_KEY = 'character-card-editor-saved-cards';
-
-export interface SavedCard {
-  id: string;
-  name: string;
-  cardData: EditorCardData;
-  version: SpecVersion;
-  imageData: string | null;
-  savedAt: number;
-}
-
-export function loadSavedCards(): SavedCard[] {
-  try {
-    const saved = localStorage.getItem(SAVED_CARDS_KEY);
-    if (saved) {
-      return JSON.parse(saved) as SavedCard[];
-    }
-  } catch (error) {
-    console.error('Error loading saved cards:', error);
-  }
-  return [];
-}
-
-export function saveSavedCards(cards: SavedCard[]): void {
-  try {
-    localStorage.setItem(SAVED_CARDS_KEY, JSON.stringify(cards));
-  } catch (error) {
-    console.error('Error saving cards:', error);
-  }
-}
+import { loadSavedCards, saveSavedCards } from '../utils/savedCardsStorage';
+import type { SavedCard } from '../utils/savedCardsStorage';
 
 interface SavedCardsMenuProps {
   currentCardData: EditorCardData;
@@ -55,15 +26,11 @@ export function SavedCardsMenu({
   onStatusChange,
 }: SavedCardsMenuProps) {
   const [isOpen, setIsOpen] = useState(false);
-  const [savedCards, setSavedCards] = useState<SavedCard[]>([]);
+  const [savedCards, setSavedCards] = useState<SavedCard[]>(() => loadSavedCards());
   const [saveAsMode, setSaveAsMode] = useState<SaveAsMode>(null);
   const [saveName, setSaveName] = useState('');
   const [selectedOverwriteId, setSelectedOverwriteId] = useState<string | null>(null);
   const menuRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    setSavedCards(loadSavedCards());
-  }, []);
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
