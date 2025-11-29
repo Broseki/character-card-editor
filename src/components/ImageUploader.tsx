@@ -78,13 +78,25 @@ export function ImageUploader({ imageData, onImageChange }: ImageUploaderProps) 
         onDragOver={handleDragOver}
         onDragLeave={handleDragLeave}
       >
-        {imageData ? (
-          <img
-            src={imageData}
-            alt="Character card"
-            className="w-full h-full object-cover"
-          />
-        ) : (
+        {imageData && (
+          // Only render image if data is a valid image data URL or HTTP(S) URL
+          (typeof imageData === 'string' && (
+            imageData.startsWith('data:image/') ||
+            imageData.startsWith('https://') ||
+            imageData.startsWith('http://')
+          )) ? (
+            <img
+              src={imageData}
+              alt="Character card"
+              className="w-full h-full object-cover"
+            />
+          ) : (
+            <div className="w-full h-full flex items-center justify-center bg-gray-800 text-red-500">
+              Invalid image data
+            </div>
+          )
+        )}
+        {!imageData && (
           <div className="w-full h-full flex items-center justify-center bg-gray-800 text-gray-500">
             Loading...
           </div>
