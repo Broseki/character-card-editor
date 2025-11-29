@@ -33,6 +33,7 @@ interface SavedState {
   version: SpecVersion;
   imageData: string | null;
   savedAt: number;
+  loadedCardId: string | null;
 }
 
 function loadFromStorage(): SavedState | null {
@@ -81,6 +82,7 @@ export function CardEditor() {
   const [status, setStatus] = useState<string>('');
   const [lastSaved, setLastSaved] = useState<Date | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [loadedCardId, setLoadedCardId] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const isInitialLoad = useRef(true);
 
@@ -93,6 +95,9 @@ export function CardEditor() {
         setVersion(saved.version);
         setImageData(saved.imageData);
         setLastSaved(new Date(saved.savedAt));
+        if (saved.loadedCardId) {
+          setLoadedCardId(saved.loadedCardId);
+        }
 
         // Recreate blob from data URL if we have image data
         if (saved.imageData) {
@@ -116,12 +121,12 @@ export function CardEditor() {
     if (isInitialLoad.current) return;
 
     const timeoutId = setTimeout(() => {
-      saveToStorage({ cardData, version, imageData });
+      saveToStorage({ cardData, version, imageData, loadedCardId });
       setLastSaved(new Date());
     }, 500); // Debounce saves by 500ms
 
     return () => clearTimeout(timeoutId);
-  }, [cardData, version, imageData]);
+  }, [cardData, version, imageData, loadedCardId]);
 
   const updateCardData = useCallback((changes: Partial<EditorCardData>) => {
     setCardData((prev) => ({ ...prev, ...changes }));
@@ -219,6 +224,7 @@ export function CardEditor() {
       setImageData(null);
       setImageBlob(null);
       setLastSaved(null);
+      setLoadedCardId(null);
       setStatus('New card created');
       setTimeout(() => setStatus(''), 3000);
     }
@@ -228,6 +234,7 @@ export function CardEditor() {
     setCardData(card.cardData);
     setVersion(card.version);
     setImageData(card.imageData);
+    setLoadedCardId(card.id);
 
     if (card.imageData) {
       const blob = await dataUrlToBlob(card.imageData);
@@ -327,7 +334,9 @@ export function CardEditor() {
               currentCardData={cardData}
               currentVersion={version}
               currentImageData={imageData}
+              loadedCardId={loadedCardId}
               onLoad={handleLoadSavedCard}
+              onLoadedCardIdChange={setLoadedCardId}
               onStatusChange={showStatus}
             />
             <button
