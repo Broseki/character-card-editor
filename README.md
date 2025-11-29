@@ -40,3 +40,7 @@ npm run preview  # Preview the production build
 ## Disclaimer
 
 This application was 99% AI-generated using [Claude Code](https://claude.ai/code) and other AI tools.
+
+Code is copyleft under the [Kopimi](https://cavefox.net/kopimi/) license.
+
+The icons "public/jolly-roger.svg" and "public/wizard.svg" are from FlatIcon and need to be licensed from them if you want to use them.

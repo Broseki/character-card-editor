@@ -437,8 +437,16 @@ export function CardEditor() {
 
       {/* Footer */}
       <footer className="border-t border-gray-700 bg-gray-800 px-4 md:px-6 py-3 md:py-4 mt-8">
-        <div className="max-w-6xl mx-auto flex items-center justify-center gap-2 text-sm text-gray-400">
-          <span>Open source on</span>
+        <div className="max-w-6xl mx-auto flex items-center justify-between text-sm text-gray-400">
+          <a
+            href="https://cavefox.net/kopimi/"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-blue-400 hover:text-blue-300 transition-colors flex items-center gap-1"
+          >
+            <img src="/jolly-roger.svg" alt="" className="w-4 h-4" />
+            Kopimi
+          </a>
           <a
             href="https://github.com/Broseki/character-card-editor"
             target="_blank"
