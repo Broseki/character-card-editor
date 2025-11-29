@@ -1022,16 +1022,21 @@ describe('convertImageToPng', () => {
     });
 
     it('should convert non-PNG images', async () => {
-      // Mock Image constructor
-      const mockImage = {
-        onload: null as (() => void) | null,
-        onerror: null as (() => void) | null,
+      // Mock Image constructor using class syntax for Vitest v4
+      const mockImageInstance: { onload: (() => void) | null; onerror: (() => void) | null; src: string; naturalWidth: number; naturalHeight: number } = {
+        onload: null,
+        onerror: null,
         src: '',
         naturalWidth: 100,
         naturalHeight: 100,
       };
+      class MockImage {
+        constructor() {
+          return mockImageInstance;
+        }
+      }
 
-      vi.spyOn(global, 'Image').mockImplementation(() => mockImage as unknown as HTMLImageElement);
+      vi.stubGlobal('Image', MockImage);
 
       const jpegBlob = new Blob(['test'], { type: 'image/jpeg' });
 
@@ -1039,7 +1044,7 @@ describe('convertImageToPng', () => {
 
       // Trigger onload
       setTimeout(() => {
-        if (mockImage.onload) mockImage.onload();
+        if (mockImageInstance.onload) mockImageInstance.onload();
       }, 0);
 
       const result = await resultPromise;
@@ -1052,13 +1057,19 @@ describe('convertImageToPng', () => {
   // Sad path
   describe('Sad Path', () => {
     it('should reject when image fails to load', async () => {
-      const mockImage = {
-        onload: null as (() => void) | null,
-        onerror: null as (() => void) | null,
+      // Mock Image constructor using class syntax for Vitest v4
+      const mockImageInstance: { onload: (() => void) | null; onerror: (() => void) | null; src: string } = {
+        onload: null,
+        onerror: null,
         src: '',
       };
+      class MockImage {
+        constructor() {
+          return mockImageInstance;
+        }
+      }
 
-      vi.spyOn(global, 'Image').mockImplementation(() => mockImage as unknown as HTMLImageElement);
+      vi.stubGlobal('Image', MockImage);
 
       const badBlob = new Blob(['not an image'], { type: 'image/jpeg' });
 
@@ -1066,22 +1077,28 @@ describe('convertImageToPng', () => {
 
       // Trigger onerror
       setTimeout(() => {
-        if (mockImage.onerror) mockImage.onerror();
+        if (mockImageInstance.onerror) mockImageInstance.onerror();
       }, 0);
 
       await expect(resultPromise).rejects.toThrow('Failed to load image');
     });
 
     it('should reject when canvas context is null', async () => {
-      const mockImage = {
-        onload: null as (() => void) | null,
-        onerror: null as (() => void) | null,
+      // Mock Image constructor using class syntax for Vitest v4
+      const mockImageInstance: { onload: (() => void) | null; onerror: (() => void) | null; src: string; naturalWidth: number; naturalHeight: number } = {
+        onload: null,
+        onerror: null,
         src: '',
         naturalWidth: 100,
         naturalHeight: 100,
       };
+      class MockImage {
+        constructor() {
+          return mockImageInstance;
+        }
+      }
 
-      vi.spyOn(global, 'Image').mockImplementation(() => mockImage as unknown as HTMLImageElement);
+      vi.stubGlobal('Image', MockImage);
 
       // Mock canvas to return null context
       const originalGetContext = HTMLCanvasElement.prototype.getContext;
@@ -1091,7 +1108,7 @@ describe('convertImageToPng', () => {
       const resultPromise = convertImageToPng(jpegBlob);
 
       setTimeout(() => {
-        if (mockImage.onload) mockImage.onload();
+        if (mockImageInstance.onload) mockImageInstance.onload();
       }, 0);
 
       await expect(resultPromise).rejects.toThrow('Failed to get canvas context');
@@ -1101,15 +1118,21 @@ describe('convertImageToPng', () => {
     });
 
     it('should reject when toBlob returns null', async () => {
-      const mockImage = {
-        onload: null as (() => void) | null,
-        onerror: null as (() => void) | null,
+      // Mock Image constructor using class syntax for Vitest v4
+      const mockImageInstance: { onload: (() => void) | null; onerror: (() => void) | null; src: string; naturalWidth: number; naturalHeight: number } = {
+        onload: null,
+        onerror: null,
         src: '',
         naturalWidth: 100,
         naturalHeight: 100,
       };
+      class MockImage {
+        constructor() {
+          return mockImageInstance;
+        }
+      }
 
-      vi.spyOn(global, 'Image').mockImplementation(() => mockImage as unknown as HTMLImageElement);
+      vi.stubGlobal('Image', MockImage);
 
       // Mock canvas.toBlob to return null
       HTMLCanvasElement.prototype.toBlob = vi.fn((callback: BlobCallback) => {
@@ -1120,7 +1143,7 @@ describe('convertImageToPng', () => {
       const resultPromise = convertImageToPng(jpegBlob);
 
       setTimeout(() => {
-        if (mockImage.onload) mockImage.onload();
+        if (mockImageInstance.onload) mockImageInstance.onload();
       }, 0);
 
       await expect(resultPromise).rejects.toThrow('Failed to convert image to PNG');
@@ -1130,13 +1153,19 @@ describe('convertImageToPng', () => {
   // Malicious path
   describe('Malicious Path', () => {
     it('should handle file with spoofed MIME type', async () => {
-      const mockImage = {
-        onload: null as (() => void) | null,
-        onerror: null as (() => void) | null,
+      // Mock Image constructor using class syntax for Vitest v4
+      const mockImageInstance: { onload: (() => void) | null; onerror: (() => void) | null; src: string } = {
+        onload: null,
+        onerror: null,
         src: '',
       };
+      class MockImage {
+        constructor() {
+          return mockImageInstance;
+        }
+      }
 
-      vi.spyOn(global, 'Image').mockImplementation(() => mockImage as unknown as HTMLImageElement);
+      vi.stubGlobal('Image', MockImage);
 
       // File claims to be JPEG but isn't
       const spoofedBlob = new Blob(['not a real image'], { type: 'image/jpeg' });
@@ -1144,7 +1173,7 @@ describe('convertImageToPng', () => {
 
       // Image.onerror should fire for invalid image
       setTimeout(() => {
-        if (mockImage.onerror) mockImage.onerror();
+        if (mockImageInstance.onerror) mockImageInstance.onerror();
       }, 0);
 
       await expect(resultPromise).rejects.toThrow();
@@ -1155,11 +1184,42 @@ describe('convertImageToPng', () => {
 // ============== createPlaceholderImage Tests ==============
 
 describe('createPlaceholderImage', () => {
+  let originalGetContext: typeof HTMLCanvasElement.prototype.getContext;
+
   beforeEach(() => {
+    // Save original getContext
+    originalGetContext = HTMLCanvasElement.prototype.getContext;
+
+    // Mock canvas context with all methods used by createPlaceholderImage
+    const mockGradient = {
+      addColorStop: vi.fn(),
+    };
+
+    const mockContext = {
+      createLinearGradient: vi.fn(() => mockGradient),
+      fillStyle: '',
+      fillRect: vi.fn(),
+      beginPath: vi.fn(),
+      arc: vi.fn(),
+      fill: vi.fn(),
+      ellipse: vi.fn(),
+      font: '',
+      textAlign: '',
+      fillText: vi.fn(),
+      drawImage: vi.fn(),
+    };
+
+    HTMLCanvasElement.prototype.getContext = vi.fn(() => mockContext) as unknown as typeof HTMLCanvasElement.prototype.getContext;
+
     // Ensure toBlob is properly mocked to return a valid blob
     HTMLCanvasElement.prototype.toBlob = vi.fn((callback: BlobCallback) => {
       callback(new Blob(['mock-png-data'], { type: 'image/png' }));
     }) as unknown as typeof HTMLCanvasElement.prototype.toBlob;
+  });
+
+  afterEach(() => {
+    // Restore original getContext
+    HTMLCanvasElement.prototype.getContext = originalGetContext;
   });
 
   // Happy path
