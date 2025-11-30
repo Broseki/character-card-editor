@@ -63,7 +63,17 @@ export function ImageCropper({ imageData, onCrop, onCancel }: ImageCropperProps)
       setPosition({ x: 0, y: 0 });
       setImageLoaded(true);
     };
+    img.onerror = () => {
+      imageRef.current = null;
+      setImageLoaded(false);
+    };
     img.src = imageData;
+
+    return () => {
+      img.onload = null;
+      img.onerror = null;
+      img.src = '';
+    };
   }, [imageData]);
 
   // Smooth zoom animation

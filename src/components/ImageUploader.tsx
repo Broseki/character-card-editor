@@ -38,6 +38,12 @@ export function ImageUploader({ imageData, onImageChange }: ImageUploaderProps) 
       setImageDimensions(null);
     };
     img.src = imageData;
+
+    return () => {
+      img.onload = null;
+      img.onerror = null;
+      img.src = '';
+    };
   }, [imageData]);
 
   useEffect(() => {
