@@ -1,6 +1,7 @@
 import { useRef, useEffect, useState } from 'react';
 
 import { createPlaceholderImage, convertImageToPng } from '../utils/pngUtils';
+import { ImageCropper } from './ImageCropper';
 
 interface ImageUploaderProps {
   imageData: string | null;
@@ -11,6 +12,7 @@ export function ImageUploader({ imageData, onImageChange }: ImageUploaderProps) 
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [isDragging, setIsDragging] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [showCropper, setShowCropper] = useState(false);
 
   useEffect(() => {
     if (!imageData) {
@@ -65,40 +67,78 @@ export function ImageUploader({ imageData, onImageChange }: ImageUploaderProps) 
     setIsDragging(false);
   };
 
+  const handleCropComplete = (croppedDataUrl: string, blob: Blob) => {
+    onImageChange(croppedDataUrl, blob);
+    setShowCropper(false);
+  };
+
+  const handleCropClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (imageData && imageData.startsWith('data:image/png;base64,')) {
+      setShowCropper(true);
+    }
+  };
+
   return (
     <div className="flex flex-col items-center gap-3 md:gap-4">
-      <div
-        className={`relative w-40 h-60 md:w-48 md:h-72 rounded-lg overflow-hidden border-2 transition-colors cursor-pointer ${
-          isDragging
-            ? 'border-blue-500 bg-blue-500/10'
-            : 'border-gray-700 hover:border-gray-600'
-        }`}
-        onClick={() => fileInputRef.current?.click()}
-        onDrop={handleDrop}
-        onDragOver={handleDragOver}
-        onDragLeave={handleDragLeave}
-      >
-        {imageData ? (
-          // Only render image if data is a valid PNG data URL (the only format this app produces)
-          imageData.startsWith('data:image/png;base64,') ? (
-            <img
-              src={imageData}
-              alt="Character card"
-              className="w-full h-full object-cover"
-            />
+      <div className="relative">
+        <div
+          className={`relative w-40 h-60 md:w-48 md:h-72 rounded-lg overflow-hidden border-2 transition-colors cursor-pointer ${
+            isDragging
+              ? 'border-blue-500 bg-blue-500/10'
+              : 'border-gray-700 hover:border-gray-600'
+          }`}
+          onClick={() => fileInputRef.current?.click()}
+          onDrop={handleDrop}
+          onDragOver={handleDragOver}
+          onDragLeave={handleDragLeave}
+        >
+          {imageData ? (
+            // Only render image if data is a valid PNG data URL (the only format this app produces)
+            imageData.startsWith('data:image/png;base64,') ? (
+              <img
+                src={imageData}
+                alt="Character card"
+                className="w-full h-full object-cover"
+              />
+            ) : (
+              <div className="w-full h-full flex items-center justify-center bg-gray-800 text-red-500">
+                Invalid image data
+              </div>
+            )
           ) : (
-            <div className="w-full h-full flex items-center justify-center bg-gray-800 text-red-500">
-              Invalid image data
+            <div className="w-full h-full flex items-center justify-center bg-gray-800 text-gray-500">
+              Loading...
             </div>
-          )
-        ) : (
-          <div className="w-full h-full flex items-center justify-center bg-gray-800 text-gray-500">
-            Loading...
+          )}
+          <div className="absolute inset-0 flex items-center justify-center bg-black/50 opacity-0 hover:opacity-100 transition-opacity">
+            <span className="text-white text-sm">Click or drop to change</span>
           </div>
-        )}
-        <div className="absolute inset-0 flex items-center justify-center bg-black/50 opacity-0 hover:opacity-100 transition-opacity">
-          <span className="text-white text-sm">Click or drop to change</span>
         </div>
+        {/* Crop button */}
+        {imageData && imageData.startsWith('data:image/png;base64,') && (
+          <button
+            type="button"
+            onClick={handleCropClick}
+            className="absolute -right-2 -top-2 w-8 h-8 flex items-center justify-center bg-blue-600 hover:bg-blue-500 text-white rounded-full shadow-lg transition-colors"
+            title="Crop to 400×600"
+            aria-label="Crop image"
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              className="w-4 h-4"
+            >
+              <path d="M6 2v14a2 2 0 0 0 2 2h14" />
+              <path d="M18 22V8a2 2 0 0 0-2-2H2" />
+            </svg>
+          </button>
+        )}
       </div>
       <input
         ref={fileInputRef}
@@ -117,6 +157,14 @@ export function ImageUploader({ imageData, onImageChange }: ImageUploaderProps) 
         <p className="text-xs text-red-400 text-center max-w-48">
           {error}
         </p>
+      )}
+      {/* Image Cropper Modal */}
+      {showCropper && imageData && (
+        <ImageCropper
+          imageData={imageData}
+          onCrop={handleCropComplete}
+          onCancel={() => setShowCropper(false)}
+        />
       )}
     </div>
   );
