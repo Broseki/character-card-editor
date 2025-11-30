@@ -1,4 +1,4 @@
-import { useRef, useEffect, useState } from 'react';
+import { useRef, useEffect, useState, useId } from 'react';
 
 import { createPlaceholderImage, convertImageToPng } from '../utils/pngUtils';
 import { ImageCropper } from './ImageCropper';
@@ -8,11 +8,37 @@ interface ImageUploaderProps {
   onImageChange: (dataUrl: string, file: File | Blob) => void;
 }
 
+// Max dimensions for the preview box (matches the original fixed size)
+const MAX_WIDTH_MOBILE = 160; // w-40
+const MAX_HEIGHT_MOBILE = 240; // h-60
+const MAX_WIDTH_DESKTOP = 192; // md:w-48
+const MAX_HEIGHT_DESKTOP = 288; // md:h-72
+
 export function ImageUploader({ imageData, onImageChange }: ImageUploaderProps) {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [isDragging, setIsDragging] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [showCropper, setShowCropper] = useState(false);
+  const [imageDimensions, setImageDimensions] = useState<{ width: number; height: number } | null>(null);
+  const instanceId = useId().replace(/:/g, '');
+
+  // Load image to get dimensions
+  useEffect(() => {
+    if (!imageData || !imageData.startsWith('data:image/png;base64,')) {
+      // Use a microtask to avoid synchronous setState in effect
+      queueMicrotask(() => setImageDimensions(null));
+      return;
+    }
+
+    const img = new Image();
+    img.onload = () => {
+      setImageDimensions({ width: img.width, height: img.height });
+    };
+    img.onerror = () => {
+      setImageDimensions(null);
+    };
+    img.src = imageData;
+  }, [imageData]);
 
   useEffect(() => {
     if (!imageData) {
@@ -25,6 +51,29 @@ export function ImageUploader({ imageData, onImageChange }: ImageUploaderProps) 
       });
     }
   }, [imageData, onImageChange]);
+
+  // Calculate preview box size that fits within max area while maintaining aspect ratio
+  const getPreviewSize = (maxWidth: number, maxHeight: number) => {
+    if (!imageDimensions) {
+      // Default to recommended 2:3 aspect ratio
+      return { width: maxWidth, height: maxHeight };
+    }
+
+    const { width: imgWidth, height: imgHeight } = imageDimensions;
+    const imgAspect = imgWidth / imgHeight;
+    const maxAspect = maxWidth / maxHeight;
+
+    if (imgAspect > maxAspect) {
+      // Image is wider than max area - fit to width
+      return { width: maxWidth, height: Math.round(maxWidth / imgAspect) };
+    } else {
+      // Image is taller than max area - fit to height
+      return { width: Math.round(maxHeight * imgAspect), height: maxHeight };
+    }
+  };
+
+  const mobileSize = getPreviewSize(MAX_WIDTH_MOBILE, MAX_HEIGHT_MOBILE);
+  const desktopSize = getPreviewSize(MAX_WIDTH_DESKTOP, MAX_HEIGHT_DESKTOP);
 
   const handleFileSelect = async (file: File) => {
     setError(null);
@@ -83,23 +132,37 @@ export function ImageUploader({ imageData, onImageChange }: ImageUploaderProps) 
     <div className="flex flex-col items-center gap-3 md:gap-4">
       <div className="relative">
         <div
-          className={`relative w-40 h-60 md:w-48 md:h-72 rounded-lg overflow-hidden border-2 transition-colors cursor-pointer ${
+          id={`preview-${instanceId}`}
+          className={`relative rounded-lg overflow-hidden border-2 transition-all cursor-pointer ${
             isDragging
               ? 'border-blue-500 bg-blue-500/10'
               : 'border-gray-700 hover:border-gray-600'
           }`}
+          style={{
+            width: mobileSize.width,
+            height: mobileSize.height,
+          }}
           onClick={() => fileInputRef.current?.click()}
           onDrop={handleDrop}
           onDragOver={handleDragOver}
           onDragLeave={handleDragLeave}
         >
+          {/* Apply desktop sizes via CSS media query */}
+          <style>{`
+            @media (min-width: 768px) {
+              #preview-${instanceId} {
+                width: ${desktopSize.width}px !important;
+                height: ${desktopSize.height}px !important;
+              }
+            }
+          `}</style>
           {imageData ? (
             // Only render image if data is a valid PNG data URL (the only format this app produces)
             imageData.startsWith('data:image/png;base64,') ? (
               <img
                 src={imageData}
                 alt="Character card"
-                className="w-full h-full object-cover"
+                className="w-full h-full object-contain"
               />
             ) : (
               <div className="w-full h-full flex items-center justify-center bg-gray-800 text-red-500">

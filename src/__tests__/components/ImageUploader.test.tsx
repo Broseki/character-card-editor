@@ -417,6 +417,393 @@ describe('ImageUploader', () => {
     });
   });
 
+  // Happy path - Dynamic Preview Sizing
+  describe('Dynamic Preview Sizing', () => {
+    it('should resize preview box for wide images', async () => {
+      // Mock a wide image (800x400 = 2:1 aspect ratio)
+      class WideMockImage {
+        width = 800;
+        height = 400;
+        src = '';
+        onload: (() => void) | null = null;
+        onerror: (() => void) | null = null;
+
+        constructor() {
+          setTimeout(() => {
+            if (this.onload) this.onload();
+          }, 0);
+        }
+      }
+      global.Image = WideMockImage as unknown as typeof Image;
+
+      const onImageChange = vi.fn();
+      const { container } = render(<ImageUploader imageData={VALID_PNG_DATA_URL} onImageChange={onImageChange} />);
+
+      await act(async () => {
+        await new Promise(resolve => setTimeout(resolve, 10));
+      });
+
+      const previewBox = container.querySelector('[id^="preview-"]');
+      expect(previewBox).toBeInTheDocument();
+
+      // For wide image (2:1), width should be max (160) and height should be 80
+      // (160 / 2 = 80, which is less than max height 240)
+      expect(previewBox).toHaveStyle({ width: '160px', height: '80px' });
+    });
+
+    it('should resize preview box for tall images', async () => {
+      // Mock a tall image (300x900 = 1:3 aspect ratio)
+      class TallMockImage {
+        width = 300;
+        height = 900;
+        src = '';
+        onload: (() => void) | null = null;
+        onerror: (() => void) | null = null;
+
+        constructor() {
+          setTimeout(() => {
+            if (this.onload) this.onload();
+          }, 0);
+        }
+      }
+      global.Image = TallMockImage as unknown as typeof Image;
+
+      const onImageChange = vi.fn();
+      const { container } = render(<ImageUploader imageData={VALID_PNG_DATA_URL} onImageChange={onImageChange} />);
+
+      await act(async () => {
+        await new Promise(resolve => setTimeout(resolve, 10));
+      });
+
+      const previewBox = container.querySelector('[id^="preview-"]');
+      expect(previewBox).toBeInTheDocument();
+
+      // For tall image (1:3), height should be max (240) and width should be 80
+      // (240 * (1/3) = 80, which is less than max width 160)
+      expect(previewBox).toHaveStyle({ width: '80px', height: '240px' });
+    });
+
+    it('should use default size for 2:3 aspect ratio images', async () => {
+      // Mock a 2:3 aspect ratio image (400x600)
+      class StandardMockImage {
+        width = 400;
+        height = 600;
+        src = '';
+        onload: (() => void) | null = null;
+        onerror: (() => void) | null = null;
+
+        constructor() {
+          setTimeout(() => {
+            if (this.onload) this.onload();
+          }, 0);
+        }
+      }
+      global.Image = StandardMockImage as unknown as typeof Image;
+
+      const onImageChange = vi.fn();
+      const { container } = render(<ImageUploader imageData={VALID_PNG_DATA_URL} onImageChange={onImageChange} />);
+
+      await act(async () => {
+        await new Promise(resolve => setTimeout(resolve, 10));
+      });
+
+      const previewBox = container.querySelector('[id^="preview-"]');
+      expect(previewBox).toBeInTheDocument();
+
+      // For 2:3 image, should use full max dimensions (160x240)
+      expect(previewBox).toHaveStyle({ width: '160px', height: '240px' });
+    });
+
+    it('should resize preview box for square images', async () => {
+      // Mock a square image (500x500)
+      class SquareMockImage {
+        width = 500;
+        height = 500;
+        src = '';
+        onload: (() => void) | null = null;
+        onerror: (() => void) | null = null;
+
+        constructor() {
+          setTimeout(() => {
+            if (this.onload) this.onload();
+          }, 0);
+        }
+      }
+      global.Image = SquareMockImage as unknown as typeof Image;
+
+      const onImageChange = vi.fn();
+      const { container } = render(<ImageUploader imageData={VALID_PNG_DATA_URL} onImageChange={onImageChange} />);
+
+      await act(async () => {
+        await new Promise(resolve => setTimeout(resolve, 10));
+      });
+
+      const previewBox = container.querySelector('[id^="preview-"]');
+      expect(previewBox).toBeInTheDocument();
+
+      // For square image (1:1), width should be 160 and height 160
+      // Height is constrained to fit aspect ratio within max area
+      expect(previewBox).toHaveStyle({ width: '160px', height: '160px' });
+    });
+
+    it('should use default dimensions before image loads', () => {
+      // Mock image that never loads
+      class SlowMockImage {
+        width = 0;
+        height = 0;
+        src = '';
+        onload: (() => void) | null = null;
+        onerror: (() => void) | null = null;
+      }
+      global.Image = SlowMockImage as unknown as typeof Image;
+
+      const onImageChange = vi.fn();
+      const { container } = render(<ImageUploader imageData={VALID_PNG_DATA_URL} onImageChange={onImageChange} />);
+
+      const previewBox = container.querySelector('[id^="preview-"]');
+      expect(previewBox).toBeInTheDocument();
+
+      // Should use default max dimensions before image loads
+      expect(previewBox).toHaveStyle({ width: '160px', height: '240px' });
+    });
+
+    it('should generate unique ID for each instance', () => {
+      const onImageChange = vi.fn();
+
+      const { container: container1 } = render(
+        <ImageUploader imageData={VALID_PNG_DATA_URL} onImageChange={onImageChange} />
+      );
+      const { container: container2 } = render(
+        <ImageUploader imageData={VALID_PNG_DATA_URL} onImageChange={onImageChange} />
+      );
+
+      const previewBox1 = container1.querySelector('[id^="preview-"]');
+      const previewBox2 = container2.querySelector('[id^="preview-"]');
+
+      expect(previewBox1).toBeInTheDocument();
+      expect(previewBox2).toBeInTheDocument();
+      expect(previewBox1?.id).not.toBe(previewBox2?.id);
+    });
+
+    it('should include media query style for desktop sizing', () => {
+      const onImageChange = vi.fn();
+
+      const { container } = render(<ImageUploader imageData={VALID_PNG_DATA_URL} onImageChange={onImageChange} />);
+
+      const styleTag = container.querySelector('style');
+      expect(styleTag).toBeInTheDocument();
+      expect(styleTag?.textContent).toContain('@media (min-width: 768px)');
+    });
+  });
+
+  // Sad path - Dynamic Preview Sizing Edge Cases
+  describe('Dynamic Preview Sizing Edge Cases', () => {
+    it('should handle image load failure gracefully', async () => {
+      // Mock image that fails to load
+      class FailingMockImage {
+        width = 0;
+        height = 0;
+        src = '';
+        onload: (() => void) | null = null;
+        onerror: (() => void) | null = null;
+
+        constructor() {
+          setTimeout(() => {
+            if (this.onerror) this.onerror();
+          }, 0);
+        }
+      }
+      global.Image = FailingMockImage as unknown as typeof Image;
+
+      const onImageChange = vi.fn();
+      const { container } = render(<ImageUploader imageData={VALID_PNG_DATA_URL} onImageChange={onImageChange} />);
+
+      await act(async () => {
+        await new Promise(resolve => setTimeout(resolve, 10));
+      });
+
+      const previewBox = container.querySelector('[id^="preview-"]');
+      expect(previewBox).toBeInTheDocument();
+
+      // Should fall back to default dimensions on error
+      expect(previewBox).toHaveStyle({ width: '160px', height: '240px' });
+    });
+
+    it('should update dimensions when image data changes', async () => {
+      // Start with wide image
+      class WideMockImage {
+        width = 800;
+        height = 400;
+        src = '';
+        onload: (() => void) | null = null;
+        onerror: (() => void) | null = null;
+
+        constructor() {
+          setTimeout(() => {
+            if (this.onload) this.onload();
+          }, 0);
+        }
+      }
+      global.Image = WideMockImage as unknown as typeof Image;
+
+      const onImageChange = vi.fn();
+      const { container, rerender } = render(
+        <ImageUploader imageData={VALID_PNG_DATA_URL} onImageChange={onImageChange} />
+      );
+
+      await act(async () => {
+        await new Promise(resolve => setTimeout(resolve, 10));
+      });
+
+      let previewBox = container.querySelector('[id^="preview-"]');
+      expect(previewBox).toHaveStyle({ width: '160px', height: '80px' });
+
+      // Switch to tall image mock
+      class TallMockImage {
+        width = 300;
+        height = 900;
+        src = '';
+        onload: (() => void) | null = null;
+        onerror: (() => void) | null = null;
+
+        constructor() {
+          setTimeout(() => {
+            if (this.onload) this.onload();
+          }, 0);
+        }
+      }
+      global.Image = TallMockImage as unknown as typeof Image;
+
+      // Change image data
+      rerender(<ImageUploader imageData="data:image/png;base64,different" onImageChange={onImageChange} />);
+
+      await act(async () => {
+        await new Promise(resolve => setTimeout(resolve, 10));
+      });
+
+      previewBox = container.querySelector('[id^="preview-"]');
+      expect(previewBox).toHaveStyle({ width: '80px', height: '240px' });
+    });
+
+    it('should handle extremely wide aspect ratio', async () => {
+      // Mock extremely wide image (1000x10)
+      class ExtremeWideMockImage {
+        width = 1000;
+        height = 10;
+        src = '';
+        onload: (() => void) | null = null;
+        onerror: (() => void) | null = null;
+
+        constructor() {
+          setTimeout(() => {
+            if (this.onload) this.onload();
+          }, 0);
+        }
+      }
+      global.Image = ExtremeWideMockImage as unknown as typeof Image;
+
+      const onImageChange = vi.fn();
+      const { container } = render(<ImageUploader imageData={VALID_PNG_DATA_URL} onImageChange={onImageChange} />);
+
+      await act(async () => {
+        await new Promise(resolve => setTimeout(resolve, 10));
+      });
+
+      const previewBox = container.querySelector('[id^="preview-"]');
+      expect(previewBox).toBeInTheDocument();
+
+      // Width should be max (160), height should be very small
+      expect(previewBox).toHaveStyle({ width: '160px', height: '2px' });
+    });
+
+    it('should handle extremely tall aspect ratio', async () => {
+      // Mock extremely tall image (10x1000)
+      class ExtremeTallMockImage {
+        width = 10;
+        height = 1000;
+        src = '';
+        onload: (() => void) | null = null;
+        onerror: (() => void) | null = null;
+
+        constructor() {
+          setTimeout(() => {
+            if (this.onload) this.onload();
+          }, 0);
+        }
+      }
+      global.Image = ExtremeTallMockImage as unknown as typeof Image;
+
+      const onImageChange = vi.fn();
+      const { container } = render(<ImageUploader imageData={VALID_PNG_DATA_URL} onImageChange={onImageChange} />);
+
+      await act(async () => {
+        await new Promise(resolve => setTimeout(resolve, 10));
+      });
+
+      const previewBox = container.querySelector('[id^="preview-"]');
+      expect(previewBox).toBeInTheDocument();
+
+      // Height should be max (240), width should be very small
+      expect(previewBox).toHaveStyle({ width: '2px', height: '240px' });
+    });
+
+    it('should reset dimensions when imageData becomes null', async () => {
+      // Start with wide image
+      class WideMockImage {
+        width = 800;
+        height = 400;
+        src = '';
+        onload: (() => void) | null = null;
+        onerror: (() => void) | null = null;
+
+        constructor() {
+          setTimeout(() => {
+            if (this.onload) this.onload();
+          }, 0);
+        }
+      }
+      global.Image = WideMockImage as unknown as typeof Image;
+
+      const onImageChange = vi.fn();
+      const { container, rerender } = render(
+        <ImageUploader imageData={VALID_PNG_DATA_URL} onImageChange={onImageChange} />
+      );
+
+      await act(async () => {
+        await new Promise(resolve => setTimeout(resolve, 10));
+      });
+
+      let previewBox = container.querySelector('[id^="preview-"]');
+      expect(previewBox).toHaveStyle({ width: '160px', height: '80px' });
+
+      // Set imageData to null
+      rerender(<ImageUploader imageData={null} onImageChange={onImageChange} />);
+
+      await act(async () => {
+        await new Promise(resolve => setTimeout(resolve, 10));
+      });
+
+      previewBox = container.querySelector('[id^="preview-"]');
+      // Should reset to default dimensions
+      expect(previewBox).toHaveStyle({ width: '160px', height: '240px' });
+    });
+
+    it('should reset dimensions for non-PNG data URL', async () => {
+      const onImageChange = vi.fn();
+      const { container } = render(
+        <ImageUploader imageData="data:image/jpeg;base64,abc" onImageChange={onImageChange} />
+      );
+
+      await act(async () => {
+        await new Promise(resolve => setTimeout(resolve, 10));
+      });
+
+      const previewBox = container.querySelector('[id^="preview-"]');
+      // Should use default dimensions for non-PNG
+      expect(previewBox).toHaveStyle({ width: '160px', height: '240px' });
+    });
+  });
+
   // Integration with ImageCropper
   describe('Integration with ImageCropper', () => {
     it('should pass imageData to ImageCropper', async () => {
