@@ -190,7 +190,7 @@ export function ImageUploader({ imageData, onImageChange }: ImageUploaderProps) 
             type="button"
             onClick={handleCropClick}
             className="absolute -right-2 -top-2 w-8 h-8 flex items-center justify-center bg-blue-600 hover:bg-blue-500 text-white rounded-full shadow-lg transition-colors"
-            title="Crop to 400×600"
+            title="Crop image"
             aria-label="Crop image"
           >
             <svg

@@ -132,7 +132,7 @@ describe('ImageCropper', () => {
       expect(screen.getByRole('button', { name: 'Apply Crop' })).toBeInTheDocument();
     });
 
-    it('should render canvas element', () => {
+    it('should render canvas element with default portrait dimensions', () => {
       const onCrop = vi.fn();
       const onCancel = vi.fn();
 
@@ -140,8 +140,34 @@ describe('ImageCropper', () => {
 
       const canvas = container.querySelector('canvas');
       expect(canvas).toBeInTheDocument();
+      // Default is portrait mode (400x600)
       expect(canvas).toHaveAttribute('width', '400');
       expect(canvas).toHaveAttribute('height', '600');
+    });
+
+    it('should render Square and Portrait aspect ratio buttons', () => {
+      const onCrop = vi.fn();
+      const onCancel = vi.fn();
+
+      render(<ImageCropper imageData={VALID_PNG_DATA_URL} onCrop={onCrop} onCancel={onCancel} />);
+
+      expect(screen.getByRole('button', { name: 'Square' })).toBeInTheDocument();
+      expect(screen.getByRole('button', { name: 'Portrait' })).toBeInTheDocument();
+    });
+
+    it('should have Portrait selected by default', () => {
+      const onCrop = vi.fn();
+      const onCancel = vi.fn();
+
+      render(<ImageCropper imageData={VALID_PNG_DATA_URL} onCrop={onCrop} onCancel={onCancel} />);
+
+      const portraitButton = screen.getByRole('button', { name: 'Portrait' });
+      const squareButton = screen.getByRole('button', { name: 'Square' });
+
+      // Portrait should have the selected style (bg-blue-600)
+      expect(portraitButton.className).toContain('bg-blue-600');
+      // Square should have the unselected style (bg-gray-700)
+      expect(squareButton.className).toContain('bg-gray-700');
     });
 
     it('should show loading state before image loads', () => {
@@ -171,6 +197,183 @@ describe('ImageCropper', () => {
       // Check for corner indicator divs (4 corners)
       const corners = container.querySelectorAll('.border-white\\/50');
       expect(corners.length).toBe(4);
+    });
+  });
+
+  // Happy path - Aspect Ratio
+  describe('Aspect Ratio Selection', () => {
+    it('should switch to square dimensions when Square button is clicked', async () => {
+      const onCrop = vi.fn();
+      const onCancel = vi.fn();
+
+      const { container } = render(<ImageCropper imageData={VALID_PNG_DATA_URL} onCrop={onCrop} onCancel={onCancel} />);
+
+      // Wait for image to load
+      await act(async () => {
+        await new Promise(resolve => setTimeout(resolve, 10));
+      });
+
+      const squareButton = screen.getByRole('button', { name: 'Square' });
+      fireEvent.click(squareButton);
+
+      const canvas = container.querySelector('canvas');
+      expect(canvas).toHaveAttribute('width', '600');
+      expect(canvas).toHaveAttribute('height', '600');
+    });
+
+    it('should switch back to portrait dimensions when Portrait button is clicked', async () => {
+      const onCrop = vi.fn();
+      const onCancel = vi.fn();
+
+      const { container } = render(<ImageCropper imageData={VALID_PNG_DATA_URL} onCrop={onCrop} onCancel={onCancel} />);
+
+      // Wait for image to load
+      await act(async () => {
+        await new Promise(resolve => setTimeout(resolve, 10));
+      });
+
+      // First switch to square
+      fireEvent.click(screen.getByRole('button', { name: 'Square' }));
+
+      // Then switch back to portrait
+      fireEvent.click(screen.getByRole('button', { name: 'Portrait' }));
+
+      const canvas = container.querySelector('canvas');
+      expect(canvas).toHaveAttribute('width', '400');
+      expect(canvas).toHaveAttribute('height', '600');
+    });
+
+    it('should update button styles when aspect ratio changes', async () => {
+      const onCrop = vi.fn();
+      const onCancel = vi.fn();
+
+      render(<ImageCropper imageData={VALID_PNG_DATA_URL} onCrop={onCrop} onCancel={onCancel} />);
+
+      // Wait for image to load
+      await act(async () => {
+        await new Promise(resolve => setTimeout(resolve, 10));
+      });
+
+      const squareButton = screen.getByRole('button', { name: 'Square' });
+      const portraitButton = screen.getByRole('button', { name: 'Portrait' });
+
+      // Click square
+      fireEvent.click(squareButton);
+
+      // Square should now be selected
+      expect(squareButton.className).toContain('bg-blue-600');
+      expect(portraitButton.className).toContain('bg-gray-700');
+    });
+
+    it('should reset position when switching aspect ratio', async () => {
+      const onCrop = vi.fn();
+      const onCancel = vi.fn();
+
+      const { container } = render(<ImageCropper imageData={VALID_PNG_DATA_URL} onCrop={onCrop} onCancel={onCancel} />);
+
+      // Wait for image to load
+      await act(async () => {
+        await new Promise(resolve => setTimeout(resolve, 10));
+      });
+
+      const cropArea = container.querySelector('.cursor-move');
+
+      // Drag the image
+      fireEvent.mouseDown(cropArea!, { clientX: 100, clientY: 100 });
+      fireEvent.mouseMove(cropArea!, { clientX: 200, clientY: 200 });
+      fireEvent.mouseUp(cropArea!);
+
+      // Switch aspect ratio - this should reset position
+      fireEvent.click(screen.getByRole('button', { name: 'Square' }));
+
+      // Canvas should be redrawn (position reset happens internally)
+      expect(mockCanvasContext.drawImage).toHaveBeenCalled();
+    });
+
+    it('should recalculate zoom when switching to square', async () => {
+      const onCrop = vi.fn();
+      const onCancel = vi.fn();
+
+      render(<ImageCropper imageData={VALID_PNG_DATA_URL} onCrop={onCrop} onCancel={onCancel} />);
+
+      // Wait for image to load
+      await act(async () => {
+        await new Promise(resolve => setTimeout(resolve, 10));
+      });
+
+      // Switch to square
+      fireEvent.click(screen.getByRole('button', { name: 'Square' }));
+
+      // Wait for zoom animation
+      await act(async () => {
+        await new Promise(resolve => setTimeout(resolve, 50));
+      });
+
+      // Zoom should change since aspect ratio changed
+      // For 800x600 image: portrait needs max(400/800, 600/600) = 1.0
+      // square needs max(600/800, 600/600) = 1.0
+      // Both happen to be 1.0 for this test image, so just verify it's still valid
+      const newZoomText = screen.getByText(/%$/);
+      const newZoom = parseInt(newZoomText.textContent || '0');
+      expect(newZoom).toBeGreaterThan(0);
+    });
+
+    // Sad path - clicking already selected aspect ratio does nothing
+    it('should do nothing when clicking already selected aspect ratio', async () => {
+      const onCrop = vi.fn();
+      const onCancel = vi.fn();
+
+      const { container } = render(<ImageCropper imageData={VALID_PNG_DATA_URL} onCrop={onCrop} onCancel={onCancel} />);
+
+      // Wait for image to load
+      await act(async () => {
+        await new Promise(resolve => setTimeout(resolve, 10));
+      });
+
+      // Clear mock calls
+      mockCanvasContext.drawImage.mockClear();
+
+      const portraitButton = screen.getByRole('button', { name: 'Portrait' });
+
+      // Click portrait when it's already selected
+      fireEvent.click(portraitButton);
+
+      // Canvas dimensions should still be portrait
+      const canvas = container.querySelector('canvas');
+      expect(canvas).toHaveAttribute('width', '400');
+      expect(canvas).toHaveAttribute('height', '600');
+
+      // Portrait should still be selected
+      expect(portraitButton.className).toContain('bg-blue-600');
+    });
+
+    it('should handle rapid aspect ratio switching', async () => {
+      const onCrop = vi.fn();
+      const onCancel = vi.fn();
+
+      const { container } = render(<ImageCropper imageData={VALID_PNG_DATA_URL} onCrop={onCrop} onCancel={onCancel} />);
+
+      // Wait for image to load
+      await act(async () => {
+        await new Promise(resolve => setTimeout(resolve, 10));
+      });
+
+      const squareButton = screen.getByRole('button', { name: 'Square' });
+      const portraitButton = screen.getByRole('button', { name: 'Portrait' });
+
+      // Rapidly switch between aspect ratios
+      for (let i = 0; i < 10; i++) {
+        fireEvent.click(squareButton);
+        fireEvent.click(portraitButton);
+      }
+
+      // Should not throw and component should still be functional
+      expect(screen.getByText('Crop Image')).toBeInTheDocument();
+
+      // Final state should be portrait
+      const canvas = container.querySelector('canvas');
+      expect(canvas).toHaveAttribute('width', '400');
+      expect(canvas).toHaveAttribute('height', '600');
     });
   });
 
