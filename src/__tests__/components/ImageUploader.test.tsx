@@ -90,7 +90,7 @@ describe('ImageUploader', () => {
       render(<ImageUploader imageData={VALID_PNG_DATA_URL} onImageChange={onImageChange} />);
 
       const cropButton = screen.getByRole('button', { name: 'Crop image' });
-      expect(cropButton).toHaveAttribute('title', 'Crop to 400×600');
+      expect(cropButton).toHaveAttribute('title', 'Crop image');
     });
 
     it('should not render crop button when no image data', () => {

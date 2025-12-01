@@ -1,4 +1,4 @@
-import { useRef, useState, useEffect, useCallback } from 'react';
+import { useRef, useState, useEffect } from 'react';
 
 interface ImageCropperProps {
   imageData: string;
@@ -6,61 +6,50 @@ interface ImageCropperProps {
   onCancel: () => void;
 }
 
-const CROP_WIDTH = 400;
-const CROP_HEIGHT = 600;
+type AspectRatio = 'square' | 'portrait';
+
+const ASPECT_RATIOS: Record<AspectRatio, { width: number; height: number; label: string }> = {
+  square: { width: 600, height: 600, label: '600×600' },
+  portrait: { width: 400, height: 600, label: '400×600' },
+};
+
 const MIN_ZOOM = 0.1;
 const MAX_ZOOM = 5;
 const ZOOM_STEP = 0.2;
 const ZOOM_LERP_SPEED = 0.15; // Smoothing factor (0-1, higher = faster)
+const FIXED_DISPLAY_HEIGHT = 300; // Fixed height for the crop preview
 
 export function ImageCropper({ imageData, onCrop, onCancel }: ImageCropperProps) {
-  const containerRef = useRef<HTMLDivElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const imageRef = useRef<HTMLImageElement | null>(null);
 
+  const [aspectRatio, setAspectRatio] = useState<AspectRatio>('portrait');
   const [zoom, setZoom] = useState(1);
   const [targetZoom, setTargetZoom] = useState(1);
   const [position, setPosition] = useState({ x: 0, y: 0 });
   const [isDragging, setIsDragging] = useState(false);
   const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
   const [imageLoaded, setImageLoaded] = useState(false);
-  const [displayScale, setDisplayScale] = useState(1);
+
+  const cropWidth = ASPECT_RATIOS[aspectRatio].width;
+  const cropHeight = ASPECT_RATIOS[aspectRatio].height;
+
+  // Fixed display height, width adjusts based on aspect ratio
+  const displayScale = FIXED_DISPLAY_HEIGHT / cropHeight;
+  const displayWidth = cropWidth * displayScale;
+  const displayHeight = FIXED_DISPLAY_HEIGHT;
 
   // Track pinch gesture
   const lastTouchDistance = useRef<number | null>(null);
   const lastTouchCenter = useRef<{ x: number; y: number } | null>(null);
   const animationRef = useRef<number | null>(null);
+  const isInitialLoad = useRef(true);
 
-  // Calculate display scale based on container size
-  const updateDisplayScale = useCallback(() => {
-    if (!containerRef.current) return;
-    const containerWidth = containerRef.current.clientWidth - 32; // padding
-    const containerHeight = containerRef.current.clientHeight - 120; // buttons + padding
-    const scaleX = containerWidth / CROP_WIDTH;
-    const scaleY = containerHeight / CROP_HEIGHT;
-    setDisplayScale(Math.min(scaleX, scaleY, 1));
-  }, []);
-
-  useEffect(() => {
-    updateDisplayScale();
-    window.addEventListener('resize', updateDisplayScale);
-    return () => window.removeEventListener('resize', updateDisplayScale);
-  }, [updateDisplayScale]);
-
-  // Load image
+  // Load image (only on imageData change)
   useEffect(() => {
     const img = new Image();
     img.onload = () => {
       imageRef.current = img;
-
-      // Calculate initial zoom to fit image in crop area (cover)
-      const scaleX = CROP_WIDTH / img.width;
-      const scaleY = CROP_HEIGHT / img.height;
-      const initialZoom = Math.max(scaleX, scaleY);
-
-      setZoom(initialZoom);
-      setTargetZoom(initialZoom);
-      setPosition({ x: 0, y: 0 });
       setImageLoaded(true);
     };
     img.onerror = () => {
@@ -75,6 +64,26 @@ export function ImageCropper({ imageData, onCrop, onCancel }: ImageCropperProps)
       img.src = '';
     };
   }, [imageData]);
+
+  // Calculate zoom when image loads or aspect ratio changes
+  useEffect(() => {
+    if (!imageRef.current || !imageLoaded) return;
+
+    const img = imageRef.current;
+    const scaleX = cropWidth / img.width;
+    const scaleY = cropHeight / img.height;
+    const newZoom = Math.max(scaleX, scaleY);
+
+    if (isInitialLoad.current) {
+      // Set zoom immediately on first load
+      setZoom(newZoom);
+      setTargetZoom(newZoom);
+      isInitialLoad.current = false;
+    } else {
+      // Animate zoom on aspect ratio changes
+      setTargetZoom(newZoom);
+    }
+  }, [imageLoaded, cropWidth, cropHeight]);
 
   // Smooth zoom animation
   useEffect(() => {
@@ -114,14 +123,14 @@ export function ImageCropper({ imageData, onCrop, onCancel }: ImageCropperProps)
 
     // Clear canvas
     ctx.fillStyle = '#1f2937';
-    ctx.fillRect(0, 0, CROP_WIDTH, CROP_HEIGHT);
+    ctx.fillRect(0, 0, cropWidth, cropHeight);
 
     // Draw image centered with offset
-    const x = (CROP_WIDTH - scaledWidth) / 2 + position.x;
-    const y = (CROP_HEIGHT - scaledHeight) / 2 + position.y;
+    const x = (cropWidth - scaledWidth) / 2 + position.x;
+    const y = (cropHeight - scaledHeight) / 2 + position.y;
 
     ctx.drawImage(img, x, y, scaledWidth, scaledHeight);
-  }, [zoom, position, imageLoaded]);
+  }, [zoom, position, imageLoaded, cropWidth, cropHeight]);
 
   const handleZoomIn = () => {
     setTargetZoom(z => Math.min(z + ZOOM_STEP, MAX_ZOOM));
@@ -217,23 +226,48 @@ export function ImageCropper({ imageData, onCrop, onCancel }: ImageCropperProps)
     }, 'image/png');
   };
 
-  const displayWidth = CROP_WIDTH * displayScale;
-  const displayHeight = CROP_HEIGHT * displayScale;
+  const handleAspectRatioChange = (newRatio: AspectRatio) => {
+    if (newRatio === aspectRatio) return;
+    setAspectRatio(newRatio);
+    // Reset position when changing aspect ratio
+    setPosition({ x: 0, y: 0 });
+  };
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4">
-      <div
-        ref={containerRef}
-        className="bg-gray-900 rounded-lg w-full max-w-lg max-h-full flex flex-col"
-      >
+      <div className="bg-gray-900 rounded-lg w-full max-w-lg max-h-full flex flex-col">
         <div className="p-4 border-b border-gray-700">
           <h3 className="text-lg font-semibold text-white">Crop Image</h3>
-          <p className="text-sm text-gray-400">Drag to reposition, pinch or use buttons to zoom</p>
+          <p className="text-sm text-gray-400 mb-3">Drag to reposition, pinch or use buttons to zoom</p>
+          <div className="flex gap-2">
+            <button
+              type="button"
+              onClick={() => handleAspectRatioChange('square')}
+              className={`flex-1 px-3 py-1.5 text-sm rounded transition-colors ${
+                aspectRatio === 'square'
+                  ? 'bg-blue-600 text-white'
+                  : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
+              }`}
+            >
+              Square
+            </button>
+            <button
+              type="button"
+              onClick={() => handleAspectRatioChange('portrait')}
+              className={`flex-1 px-3 py-1.5 text-sm rounded transition-colors ${
+                aspectRatio === 'portrait'
+                  ? 'bg-blue-600 text-white'
+                  : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
+              }`}
+            >
+              Portrait
+            </button>
+          </div>
         </div>
 
         <div className="flex-1 flex items-center justify-center p-4 overflow-hidden">
           <div
-            className="relative border-2 border-blue-500 rounded cursor-move touch-none"
+            className="relative border-2 border-blue-500 rounded cursor-move touch-none transition-[width] duration-300 ease-out"
             style={{ width: displayWidth, height: displayHeight }}
             onMouseDown={handleMouseDown}
             onMouseMove={handleMouseMove}
@@ -246,8 +280,8 @@ export function ImageCropper({ imageData, onCrop, onCancel }: ImageCropperProps)
           >
             <canvas
               ref={canvasRef}
-              width={CROP_WIDTH}
-              height={CROP_HEIGHT}
+              width={cropWidth}
+              height={cropHeight}
               className="w-full h-full rounded"
               style={{ imageRendering: 'auto' }}
             />
