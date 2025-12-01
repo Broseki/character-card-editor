@@ -219,9 +219,6 @@ export function ImageUploader({ imageData, onImageChange }: ImageUploaderProps) 
         }}
         className="hidden"
       />
-      <p className="text-xs text-gray-500 text-center">
-        Recommended: 400×600px
-      </p>
       {error && (
         <p className="text-xs text-red-400 text-center max-w-48">
           {error}

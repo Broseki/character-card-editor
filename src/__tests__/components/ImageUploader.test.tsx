@@ -226,13 +226,6 @@ describe('ImageUploader', () => {
       expect(screen.getByText('Invalid image data')).toBeInTheDocument();
     });
 
-    it('should show recommended size text', () => {
-      const onImageChange = vi.fn();
-
-      render(<ImageUploader imageData={VALID_PNG_DATA_URL} onImageChange={onImageChange} />);
-
-      expect(screen.getByText('Recommended: 400×600px')).toBeInTheDocument();
-    });
   });
 
   // Happy path - Drag and Drop
