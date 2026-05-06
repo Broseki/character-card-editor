@@ -1,29 +1,22 @@
-# Build stage
-FROM node:22-alpine AS build
+FROM dhi.io/node:24-alpine3.23-sfw-dev AS build
 
 WORKDIR /app
 
-# Copy package files
 COPY package*.json ./
+RUN sfw npm ci
 
-# Install dependencies
-RUN npm ci
-
-# Copy source code
 COPY . .
+RUN sfw npm run build
 
-# Build the application
-RUN npm run build
+RUN sfw npm i --no-save --prefix /opt/serve-pkg sirv-cli
 
-# Production stage
-FROM nginx:alpine
+FROM dhi.io/node:24-alpine3.23 AS runtime
 
-# Copy built assets from build stage
-COPY --from=build /app/dist /usr/share/nginx/html
+WORKDIR /app
 
-# Copy nginx configuration for SPA routing
-COPY nginx.conf /etc/nginx/conf.d/default.conf
+COPY --from=build /app/dist ./dist
+COPY --from=build /opt/serve-pkg/node_modules ./node_modules
 
 EXPOSE 3000
 
-CMD ["nginx", "-g", "daemon off;"]
+CMD ["node", "node_modules/sirv-cli/bin.js", "dist", "--single", "--host", "0.0.0.0", "--port", "3000"]

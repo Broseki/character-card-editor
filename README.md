@@ -28,6 +28,16 @@ npm run build
 npm run preview  # Preview the production build
 ```
 
+### Docker
+
+The image is built on [Docker Hardened Images](https://docs.docker.com/dhi/), so you must `docker login dhi.io` (free, uses your Docker Hub credentials) before building. The container exposes port 3000.
+
+```bash
+docker login dhi.io
+docker build -t character-card-editor .
+docker run --rm -p 3000:3000 character-card-editor
+```
+
 ## Tech Stack
 
 - React 19
